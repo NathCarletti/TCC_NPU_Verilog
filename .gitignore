@@ -1,0 +1,67 @@
+# =========================
+# Verilog / Simulation
+# =========================
+*.vcd
+*.wlf
+*.log
+*.jou
+*.pb
+*.str
+*.wdb
+transcript
+vsim.wlf
+work/
+modelsim.ini
+
+# =========================
+# ModelSim / Questa
+# =========================
+*.mti
+*.dat
+*.dbg
+*.bak
+*.tmp
+
+# =========================
+# Quartus
+# =========================
+db/
+incremental_db/
+output_files/
+simulation/
+*.qws
+*.sopcinfo
+*.summary
+*.rpt
+*.chg
+*.qdf
+*.qar
+*.jdi
+
+# =========================
+# Vivado
+# =========================
+.cache/
+.hw/
+.ip_user_files/
+.runs/
+.sim/
+.gen/
+.srcs/
+*.xpr
+*.bit
+*.bin
+*.ltx
+*.log
+*.jou
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
