@@ -1,3 +1,6 @@
+//registrador armazenador de dados de entrada, com controle de habilitação e limpeza assíncrona, antes da NPU
+//os dados entram na npu_top e são imediatamente armazenados aqui, para garantir estabilidade durante o processamento
+//antes de irem para a MAC e outras unidades de processamento
 module input_buffer (
     input  CLKEXT, //clock
     input  CLR_BUF_IN, //clear

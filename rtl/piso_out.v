@@ -1,3 +1,6 @@
+//Registrador de saída serial (PISO) para enviar os resultados processados pela NPU para fora, 
+//controlado por sinais de habilitação, limpeza e shift
+//
 module piso_out (
     input  wire        CLKEXT,
     input  wire        RST_GLO,
@@ -31,8 +34,8 @@ module piso_out (
       end
       else
       begin
-        D_OUT     <= shift_reg[31:24];
-        shift_reg <= {shift_reg[23:0], 8'b0};
+        D_OUT     <= shift_reg[31:24]; //deslocados serialmente para fora, começando pelos bits mais significativos
+        shift_reg <= {shift_reg[23:0], 8'b0}; //evita glitches ao deslocar, preenchendo os bits inferiores com zero
       end
     end
   end

@@ -1,3 +1,4 @@
+// Módulo de multiplicação e acumulação (MAC) com controle de saturação, para uso em operações de convolução em uma NPU
 module mac_module (
     input  CLKEXT, //clock
     input  EN_MAC, //enable
