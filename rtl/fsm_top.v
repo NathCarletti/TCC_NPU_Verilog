@@ -39,7 +39,7 @@ module npu_fsm_top (
   parameter LOAD_INPUT   = 4'd1;
   parameter COMPUTE      = 4'd2;
   parameter RELU_STAGE   = 4'd3;
-  parameter WRITE_FIFO   = 4'd4;
+  parameter PISO_LOAD    = 4'd4;
   parameter OUTPUT_SHIFT = 4'd5;
   parameter FINISH       = 4'd6;
 
@@ -115,6 +115,7 @@ module npu_fsm_top (
                .CLKEXT(CLKEXT),
                .EN_MAC(EN_MAC),
                .RST_MAC(RST_MAC),
+               .RST_GLO(RST_GLO),
                .BIAS_IN(DA),
                .A(QA),
                .B(QB),
@@ -126,6 +127,7 @@ module npu_fsm_top (
                .CLKEXT(CLKEXT),
                .EN_MAC(EN_MAC),
                .RST_MAC(RST_MAC),
+               .RST_GLO(RST_GLO),
                .BIAS_IN(DC),
                .A(QC),
                .B(QD),
@@ -229,7 +231,7 @@ module npu_fsm_top (
   begin
     if (RST_GLO)
       fifo_write_step <= 2'd0;
-    else if (state == WRITE_FIFO)
+    else if (state == OUTPUT_SHIFT)
       fifo_write_step <= fifo_write_step + 1'b1;
     else
       fifo_write_step <= 2'd0;
@@ -307,7 +309,7 @@ module npu_fsm_top (
       COMPUTE:
       begin
         EN_MAC = 1'b1;
-        RST_MAC = 1'b0;
+        RST_MAC = (cycle_cnt == 8'd0) ? 1'b1 : 1'b0;
         if (cycle_cnt >= (MAC_CYCLES - 1))
           next_state = RELU_STAGE;
         else
@@ -318,22 +320,17 @@ module npu_fsm_top (
       begin
         En_ReLU = 1'b1;
         BYPASS_ReLU = 1'b0;
-        next_state = WRITE_FIFO;
+        EN_COMP = 1'b1;
+        RST_COMP = 1'b0;
+        next_state = PISO_LOAD;
       end
 
-      WRITE_FIFO:
+      PISO_LOAD:
       begin
-        // escreve dois bytes na FIFO (alto primeiro, depois baixo)
-        fifo_wr_en = 1'b1;
-        fifo_data_in = PISO_DOUT;
-        if (fifo_write_step == 0)
-        begin
-          next_state = WRITE_FIFO; // permanece para a segunda escrita
-        end
-        else
-        begin
-          next_state = OUTPUT_SHIFT;
-        end
+        EN_PISO_OUT = 1'b1;
+        CLR_PISO_OUT = 1'b0;
+        SHIFT_OUT = 1'b0;
+        next_state = OUTPUT_SHIFT;
       end
 
       OUTPUT_SHIFT:
@@ -343,7 +340,16 @@ module npu_fsm_top (
         SHIFT_OUT = 1'b1;
         SEL_OUT = 3'b001; // escolhe dados do piso
         fifo_rd_en = 1'b0;
-        next_state = FINISH;
+        fifo_wr_en = 1'b1;
+        fifo_data_in = PISO_DOUT;
+        if (fifo_write_step == 0)
+        begin
+          next_state = OUTPUT_SHIFT; // permanece para a segunda escrita
+        end
+        else
+        begin
+          next_state = FINISH;
+        end
       end
 
       FINISH:

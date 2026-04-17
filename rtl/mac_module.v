@@ -3,6 +3,7 @@ module mac_module (
     input  CLKEXT, //clock
     input  EN_MAC, //enable
     input  RST_MAC, //seletor do mux
+    input  RST_GLO, // reset global
     input  [7:0] BIAS_IN, //uma das entradas do mux
     input  signed [7:0] A, B, //operandos
     output reg signed [15:0] Y //resultado
@@ -39,8 +40,10 @@ module mac_module (
     assign next_val = (RST_MAC) ? bias_ext : sat_out;
 
     // FF D
-    always @(posedge CLKEXT) begin
-        if (EN_MAC)
+    always @(posedge CLKEXT or posedge RST_GLO) begin
+        if (RST_GLO)
+            Y <= 16'd0;
+        else if (EN_MAC)
             Y <= next_val;
     end
 

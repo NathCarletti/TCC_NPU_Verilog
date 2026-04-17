@@ -51,6 +51,7 @@ module parking_npu_top (
     reg [1:0]  npu_state_reg;
     reg [31:0] npu_input_reg;
     reg [7:0]  npu_output_reg;
+    reg [1:0]  parking_class_reg;
 
     // START mantido por vários ciclos (para dar margem ao bloco NPU)
     reg [2:0] start_hold;
@@ -120,6 +121,16 @@ module parking_npu_top (
             npu_state_reg = 2'b00;
     end
 
+    // Latch da classe final para manter LEDs acesos após a conclusão
+    always @(posedge clk or negedge resetn) begin
+        if (!resetn)
+            parking_class_reg <= 2'b00;
+        else if (npu_done)
+            parking_class_reg <= (sensor_delta > 8'd40) ? 2'b10 :  // obstruída se delta alta
+                                 (npu_dout == 8'd1) ? 2'b00 :       // livre se index=1
+                                 2'b01;                             // ocupada se index=2
+    end
+
     // Instancia NPU existente
     npu_top u_npu_top (
         .CLKEXT(clk),
@@ -151,7 +162,7 @@ module parking_npu_top (
 
     // Traduz o resultado de 8 bits da NPU para 3 classes
     // Assumimos que a NPU já produz um valor em {0,1,2}. Caso contrário, truncar.
-    assign parking_class = npu_dout[1:0];
+    assign parking_class = parking_class_reg;
 
     // Controlador de LEDs
     parking_controller u_parking_controller (
