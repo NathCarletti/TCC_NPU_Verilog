@@ -73,7 +73,7 @@ module npu_axi_wrapper (
     // =========================
     // CAPTURA RESULTADO e STATUS
     // =========================
-    always @(posedge clk) begin
+    always @(posedge clk or negedge rstn) begin
         if (!rstn) begin
             result_reg <= 0;
             parking_class_reg <= 0;
@@ -83,9 +83,16 @@ module npu_axi_wrapper (
             // Delay START para gerar pulso de 1 ciclo
             start_reg_d <= start_reg;
             
-            // Status: [0]=busy, [1]=done
+            // Status
             status_reg[0] <= npu_busy;
-            status_reg[1] <= npu_done;
+
+            // DONE permanece alto até o próximo START, para garantir que a TB possa ler o resultado antes de limpar
+            if (npu_done)
+                status_reg[1] <= 1'b1;
+
+            // limpa DONE ao iniciar novo processamento
+            if (start_reg && !start_reg_d)
+                status_reg[1] <= 1'b0;
 
             // Captura resultado quando NPU termina
             if (npu_done) begin

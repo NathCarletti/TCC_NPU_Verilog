@@ -108,20 +108,25 @@ module tb_axi_npu_wrapper;
 
     task wait_done;
         reg [31:0] status;
+        reg flag_done;
         integer timeout;
         begin
             timeout = 0;
+            flag_done = 0;
             repeat(2000) begin
-                axi_read(32'h0014, status);  // Read STATUS
-                if (status[1] == 1'b1) begin
-                    $display("[TB] NPU DONE! status=0x%08x", status);
-                    timeout = 0;
-                    break;
+                 if (!flag_done) begin
+                    axi_read(32'h0014, status);  // Read status
+                    if (status[1] == 1'b1) begin
+                        $display("[TB] NPU DONE! status=0x%08x", status);
+                        timeout = 0;
+                        flag_done = 1;
+                    end
+                    timeout = timeout + 1;
                 end
-                timeout = timeout + 1;
             end
-            if (timeout > 0) begin
-                $display("[TB] ERROR: Timeout aguardando DONE");
+            if (!flag_done) begin
+                $display("[TB] ERROR: Timeout aguardando DONE(%0d ciclos)", timeout);
+
             end
         end
     endtask
@@ -129,10 +134,10 @@ module tb_axi_npu_wrapper;
     // ================================================================
     // Teste Principal
     // ================================================================
-    initial begin
-        reg [31:0] data;
-        integer i;
+    reg [31:0] data;
+    integer i;
 
+    initial begin
         $display("\n[TB] ========================================");
         $display("[TB] Iniciando Testbench AXI NPU Wrapper");
         $display("[TB] ========================================\n");
