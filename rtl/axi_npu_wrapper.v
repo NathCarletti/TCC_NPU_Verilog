@@ -27,7 +27,7 @@ module npu_axi_wrapper (
     output reg [31:0] s_axi_rdata,
     output reg [1:0] s_axi_rresp,
     output reg s_axi_rvalid,
-    input wire s_axi_rready
+    input wire s_axi_rready    
 );
 
     // =========================
@@ -43,7 +43,11 @@ module npu_axi_wrapper (
     reg [7:0] result_reg;
     reg [1:0] parking_class_reg;  // latch da classe final
     reg [1:0] status_reg; // [0]=busy, [1]=done
+    reg       out_rd_en_reg;
+    reg      fifo_read_reg; //read signal
+    reg [31:0] fifo_read_count; //contagem
 
+   
     // =========================
     // NPU (Interface real do projeto)
     // =========================
@@ -67,43 +71,49 @@ module npu_axi_wrapper (
         .FIFO_EMPTY(npu_fifo_empty),
         .BUSY(npu_busy),
         .DONE(npu_done),
-        .npu_out_rd_en(1'b1)       // Sempre ler FIFO
+        .npu_out_rd_en(out_rd_en_reg)//(1'b1)       // Sempre ler FIFO
     );
 
-    // =========================
-    // CAPTURA RESULTADO e STATUS
-    // =========================
+    // Detecta borda de subida do DONE
+    reg npu_done_d;
+    wire done_edge;
+
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn)
+            npu_done_d <= 1'b0;
+        else
+            npu_done_d <= npu_done;
+    end
+
+    assign done_edge = npu_done && !npu_done_d;
+
+
+    // =====================================================
+    // BLOCO PRINCIPAL
+    // =====================================================
     always @(posedge clk or negedge rstn) begin
         if (!rstn) begin
-            result_reg <= 0;
-            parking_class_reg <= 0;
-            status_reg <= 0;
-            start_reg_d <= 0;
+            //npu_input_reg   <= 32'd0;
+            result_reg  <= 8'd0;
+            out_rd_en_reg   <= 1'b0;
+            fifo_read_reg   <= 1'b0;
+            fifo_read_count <= 32'd0;
         end else begin
-            // Delay START para gerar pulso de 1 ciclo
-            start_reg_d <= start_reg;
-            
-            // Status
-            status_reg[0] <= npu_busy;
+            // Captura entrada (debug)
+           // npu_input_reg <= {sensor_distance, sensor_delta, sensor_time, sensor_lux};
 
-            // DONE permanece alto até o próximo START, para garantir que a TB possa ler o resultado antes de limpar
-            if (npu_done)
-                status_reg[1] <= 1'b1;
+            // LEITURADA FIFO 
+            if (done_edge && !npu_fifo_empty) begin
+                out_rd_en_reg   <= 1'b1;
+                fifo_read_reg   <= 1'b1;
+                fifo_read_count <= fifo_read_count + 1;
 
-            // limpa DONE ao iniciar novo processamento
-            if (start_reg && !start_reg_d)
-                status_reg[1] <= 1'b0;
+                // Captura valor FINAL da NPU
+                result_reg  <= npu_d_out;
 
-            // Captura resultado quando NPU termina
-            if (npu_done) begin
-                result_reg <= npu_d_out;
-                // Latch da classe final (mantém após DONE)
-                if (db_reg > 8'd40)  // delta alto = obstruída
-                    parking_class_reg <= 2'b10;  // amarelo
-                else if (npu_d_out == 8'd1)  // index=1 = livre
-                    parking_class_reg <= 2'b00;  // verde
-                else
-                    parking_class_reg <= 2'b01;  // vermelho (ocupada)
+            end else begin
+                out_rd_en_reg <= 1'b0;
+                fifo_read_reg <= 1'b0;
             end
         end
     end
