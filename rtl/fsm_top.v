@@ -29,7 +29,12 @@ module npu_fsm_top (
 
     // status
     output reg BUSY,
-    output reg DONE
+    output reg DONE,
+
+    output [15:0] mac0_out,
+    output [15:0] mac1_out,
+    output [15:0] relu0_out,
+    output [15:0] relu1_out
   );
 
   // ------------------------------------------------------------------
@@ -99,6 +104,8 @@ module npu_fsm_top (
   // temporary registers
   reg [15:0] mac0_out_reg;
   reg [15:0] mac1_out_reg;
+  reg [15:0] relu0_out_reg;
+  reg [15:0] relu1_out_reg;
 
   // ------------------------------------------------------------------
   // Instantiate datapath modules (assuma que nomes e portas batem com rtl/)
@@ -373,6 +380,8 @@ module npu_fsm_top (
     begin
       mac0_out_reg <= 16'd0;
       mac1_out_reg <= 16'd0;
+      relu0_out_reg <= 16'd0;
+      relu1_out_reg <= 16'd0;
     end
     else
     begin
@@ -381,7 +390,20 @@ module npu_fsm_top (
         mac0_out_reg <= MAC0_Y;
         mac1_out_reg <= MAC1_Y; // duplicado como exemplo
       end
+      if (state == RELU_STAGE && next_state == PISO_LOAD)
+      begin
+        relu0_out_reg <= ReLU0_OUT;
+        relu1_out_reg <= ReLU1_OUT;
+      end
     end
   end
+
+  // ------------------------------------------------------------------
+  // Assign debug outputs
+  // ------------------------------------------------------------------
+  assign mac0_out = mac0_out_reg;
+  assign mac1_out = mac1_out_reg;
+  assign relu0_out = relu0_out_reg;
+  assign relu1_out = relu1_out_reg;
 
 endmodule

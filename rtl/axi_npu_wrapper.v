@@ -47,13 +47,16 @@ module npu_axi_wrapper (
     reg      fifo_read_reg; //read signal
     reg [31:0] fifo_read_count; //contagem
 
-   
+    reg [15:0] mac0_out_reg, mac1_out_reg;
+    reg [15:0] relu0_out_reg, relu1_out_reg;
     // =========================
     // NPU (Interface real do projeto)
     // =========================
     wire [7:0]  npu_d_out;
     wire        npu_fifo_full, npu_fifo_empty;
     wire        npu_busy, npu_done;
+    wire [15:0] npu_mac0_out, npu_mac1_out;
+    wire [15:0] npu_relu0_out, npu_relu1_out;
 
     npu_top u_npu (
         .CLKEXT(clk),
@@ -71,7 +74,11 @@ module npu_axi_wrapper (
         .FIFO_EMPTY(npu_fifo_empty),
         .BUSY(npu_busy),
         .DONE(npu_done),
-        .npu_out_rd_en(out_rd_en_reg)//(1'b1)       // Sempre ler FIFO
+        .npu_out_rd_en(out_rd_en_reg),
+        .mac0_out_debug(npu_mac0_out),
+        .mac1_out_debug(npu_mac1_out),
+        .relu0_out_debug(npu_relu0_out),
+        .relu1_out_debug(npu_relu1_out)
     );
 
     // Detecta borda de subida do DONE
@@ -87,36 +94,61 @@ module npu_axi_wrapper (
 
     assign done_edge = npu_done && !npu_done_d;
 
-
     // =====================================================
     // BLOCO PRINCIPAL
-    // =====================================================
+    // =====================================================    
     always @(posedge clk or negedge rstn) begin
-        if (!rstn) begin
-            //npu_input_reg   <= 32'd0;
-            result_reg  <= 8'd0;
-            out_rd_en_reg   <= 1'b0;
-            fifo_read_reg   <= 1'b0;
-            fifo_read_count <= 32'd0;
-        end else begin
-            // Captura entrada (debug)
-           // npu_input_reg <= {sensor_distance, sensor_delta, sensor_time, sensor_lux};
+    if (!rstn) begin
+        result_reg <= 0;
+        parking_class_reg <= 0;
+        status_reg <= 0;
+        start_reg_d <= 0;
+        out_rd_en_reg <= 1'b0;
+    end else begin
+        // Delay START para gerar pulso de 1 ciclo
+        start_reg_d <= start_reg;
+        
+        // Status
+        status_reg[0] <= npu_busy;
 
-            // LEITURADA FIFO 
-            if (done_edge && !npu_fifo_empty) begin
-                out_rd_en_reg   <= 1'b1;
-                fifo_read_reg   <= 1'b1;
-                fifo_read_count <= fifo_read_count + 1;
+        // DONE latched
+        if (npu_done)
+            status_reg[1] <= 1'b1;
 
-                // Captura valor FINAL da NPU
-                result_reg  <= npu_d_out;
+        // limpa DONE ao iniciar novo processamento
+        if (start_reg && !start_reg_d)
+            status_reg[1] <= 1'b0;
 
-            end else begin
-                out_rd_en_reg <= 1'b0;
-                fifo_read_reg <= 1'b0;
-            end
+        // =========================
+        // CONTROLE DA FIFO DO NPU
+        // =========================
+        if (!npu_fifo_empty)
+            out_rd_en_reg <= 1'b1;
+        else
+            out_rd_en_reg <= 1'b0;
+
+        // =========================
+        // CAPTURA DO RESULTADO
+        // =========================
+        if (!npu_fifo_empty) begin
+            result_reg <= npu_d_out;
+            
+            // Capture MAC and ReLU debug values
+            mac0_out_reg <= npu_mac0_out;
+            mac1_out_reg <= npu_mac1_out;
+            relu0_out_reg <= npu_relu0_out;
+            relu1_out_reg <= npu_relu1_out;
+
+            // Latch da classe final
+            if (db_reg > 8'd40)
+                parking_class_reg <= 2'b10;  // obstruída
+            else if (npu_d_out == 8'd1)
+                parking_class_reg <= 2'b00;  // livre
+            else
+                parking_class_reg <= 2'b01;  // ocupada
         end
     end
+end
 
     // =========================
     // WRITE AXI
@@ -177,8 +209,12 @@ module npu_axi_wrapper (
                     6'h0C: s_axi_rdata <= {24'd0, dd_reg};         // lux
                     6'h10: s_axi_rdata <= {31'd0, start_reg};      // START
                     6'h14: s_axi_rdata <= {30'd0, status_reg};     // STATUS [busy, done]
-                    6'h18: s_axi_rdata <= {24'd0, result_reg};     // resultado full
+                    6'h18: s_axi_rdata <= {24'd0, result_reg};     // resultado (index)
                     6'h1C: s_axi_rdata <= {30'd0, parking_class_reg}; // classe final
+                    6'h20: s_axi_rdata <= mac0_out_reg;            // MAC0 completo (16 bits)
+                    6'h24: s_axi_rdata <= mac1_out_reg;            // MAC1 completo (16 bits)
+                    6'h28: s_axi_rdata <= relu0_out_reg;           // ReLU0 completo (16 bits)
+                    6'h2C: s_axi_rdata <= relu1_out_reg;           // ReLU1 completo (16 bits)
                     default: s_axi_rdata <= 32'd0;
                 endcase
 

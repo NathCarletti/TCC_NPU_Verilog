@@ -173,7 +173,7 @@ module tb_axi_npu_wrapper;
         repeat(10) @(posedge clk);
         
         axi_read(32'h0018, data);  // Resultado bruto
-        $display("[TB] Resultado bruto: 0x%02x", data[7:0]);
+        $display("[TB] Resultado bruto: 0x%02x", data[15:0]);
         
         axi_read(32'h001C, data);  // Classe final
         $display("[TB] Classe final: %b (esperado 00 = verde/livre)\n", data[1:0]);
