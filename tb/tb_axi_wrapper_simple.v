@@ -157,7 +157,7 @@ module tb_axi_npu_wrapper;
         // ================================================================
         // CENÁRIO 0: VAGA LIVRE
         // ================================================================
-        $display("\n[TB] ========== CENÁRIO 0: VAGA LIVRE ==========");
+        $display("\n[TB] ========== CENARIO 0: VAGA LIVRE ==========");
         $display("[TB] Input: dist=200, delta=2, time=30, lux=120");
         
         axi_write(32'h0000, 32'd200);  // DA = 200 (distance)
@@ -181,7 +181,7 @@ module tb_axi_npu_wrapper;
         // ================================================================
         // CENÁRIO 1: VAGA OCUPADA
         // ================================================================
-        $display("[TB] ========== CENÁRIO 1: VAGA OCUPADA ==========");
+        $display("[TB] ========== CENARIO 1: VAGA OCUPADA ==========");
         $display("[TB] Input: dist=30, delta=1, time=20, lux=80");
         
         axi_write(32'h0000, 32'd30);   // DA = 30
@@ -205,7 +205,7 @@ module tb_axi_npu_wrapper;
         // ================================================================
         // CENÁRIO 2: VAGA OBSTRUÍDA
         // ================================================================
-        $display("[TB] ========== CENÁRIO 2: VAGA OBSTRUÍDA ==========");
+        $display("[TB] ========== CENARIO 2: VAGA OBSTRUIDA ==========");
         $display("[TB] Input: dist=110, delta=50, time=15, lux=20");
         
         axi_write(32'h0000, 32'd110);  // DA = 110
@@ -224,10 +224,10 @@ module tb_axi_npu_wrapper;
         $display("[TB] Resultado bruto: 0x%02x", data[7:0]);
         
         axi_read(32'h001C, data);  // Classe final
-        $display("[TB] Classe final: %b (esperado 10 = amarelo/obstruída)\n", data[1:0]);
+        $display("[TB] Classe final: %b (esperado 10 = amarelo/obstruida)\n", data[1:0]);
 
         $display("[TB] ========================================");
-        $display("[TB] Simulação Completa!");
+        $display("[TB] Simulacao Completa!");
         $display("[TB] ========================================\n");
         $stop;
     end

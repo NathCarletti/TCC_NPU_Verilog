@@ -44,8 +44,7 @@ module npu_axi_wrapper (
     reg [1:0] parking_class_reg;  // latch da classe final
     reg [1:0] status_reg; // [0]=busy, [1]=done
     reg       out_rd_en_reg;
-    reg      fifo_read_reg; //read signal
-    reg [31:0] fifo_read_count; //contagem
+    reg       out_rd_en_reg_d; // delay para sincronizar leitura do resultado com o pulso de leitura da FIFO
 
     reg [15:0] mac0_out_reg, mac1_out_reg;
     reg [15:0] relu0_out_reg, relu1_out_reg;
@@ -104,6 +103,7 @@ module npu_axi_wrapper (
         status_reg <= 0;
         start_reg_d <= 0;
         out_rd_en_reg <= 1'b0;
+        out_rd_en_reg_d <= 1'b0;
     end else begin
         // Delay START para gerar pulso de 1 ciclo
         start_reg_d <= start_reg;
@@ -122,15 +122,18 @@ module npu_axi_wrapper (
         // =========================
         // CONTROLE DA FIFO DO NPU
         // =========================
-        if (!npu_fifo_empty)
+        // Gera um pulso único de leitura apenas quando a NPU terminar e a FIFO tiver dados.
+        if (done_edge && !npu_fifo_empty)
             out_rd_en_reg <= 1'b1;
         else
             out_rd_en_reg <= 1'b0;
 
+        out_rd_en_reg_d <= out_rd_en_reg; // v2.delay para sincronizar com leitura do dado
+
         // =========================
         // CAPTURA DO RESULTADO
         // =========================
-        if (!npu_fifo_empty) begin
+        if (out_rd_en_reg_d) begin
             result_reg <= npu_d_out;
             
             // Capture MAC and ReLU debug values

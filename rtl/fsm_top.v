@@ -334,6 +334,8 @@ module npu_fsm_top (
 
       PISO_LOAD:
       begin
+        En_ReLU = 1'b1;           //MANTÉM EN_RELU ATIVO
+        BYPASS_ReLU = 1'b0;
         EN_PISO_OUT = 1'b1;
         CLR_PISO_OUT = 1'b0;
         SHIFT_OUT = 1'b0;
@@ -342,6 +344,8 @@ module npu_fsm_top (
 
       OUTPUT_SHIFT:
       begin
+        En_ReLU = 1'b1;           //MANTÉM EN_RELU ATIVO durante output
+        BYPASS_ReLU = 1'b0;
         EN_PISO_OUT = 1'b1;
         CLR_PISO_OUT = 1'b0;
         SHIFT_OUT = 1'b1;
@@ -390,7 +394,8 @@ module npu_fsm_top (
         mac0_out_reg <= MAC0_Y;
         mac1_out_reg <= MAC1_Y; // duplicado como exemplo
       end
-      if (state == RELU_STAGE && next_state == PISO_LOAD)
+      if (state == PISO_LOAD && next_state == OUTPUT_SHIFT) 
+      //alterado para capturar saída do ReLU
       begin
         relu0_out_reg <= ReLU0_OUT;
         relu1_out_reg <= ReLU1_OUT;
