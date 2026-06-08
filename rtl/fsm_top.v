@@ -78,6 +78,13 @@ module npu_fsm_top (
   reg CLR_PISO_OUT;
   reg SHIFT_OUT;
   wire [7:0] PISO_DOUT;
+  wire [15:0] piso_parallel_in0;
+  wire [15:0] piso_parallel_in1;
+  wire [7:0] piso_serial_out;
+  wire [7:0] fifo_dout;
+  wire [7:0] fifo_din;
+  wire [2:0] mux_sel;
+  wire [7:0] mux_out;
 
   // PISO_DEB interface
   reg EN_PISO_DEB;
@@ -165,8 +172,8 @@ module npu_fsm_top (
              .EN_PISO_OUT(EN_PISO_OUT),
              .CLR_PISO_OUT(CLR_PISO_OUT),
              .SHIFT_OUT(SHIFT_OUT),
-             .mac0_out(mac0_out_reg),
-             .mac1_out(mac1_out_reg),
+             .mac0_out(piso_parallel_in0),
+             .mac1_out(piso_parallel_in1),
              .D_OUT(PISO_DOUT)
            );
 
@@ -206,6 +213,14 @@ module npu_fsm_top (
              .QA(QA), .QB(QB), .QC(QC), .QD(QD),
              .D_OUT(PISO1_DOUT)
            );
+
+  assign piso_parallel_in0 = ReLU0_OUT;
+  assign piso_parallel_in1 = ReLU1_OUT;
+  assign piso_serial_out = PISO_DOUT;
+  assign fifo_dout = fifo_data_out;
+  assign fifo_din = fifo_data_in;
+  assign mux_sel = SEL_OUT;
+  assign mux_out = D_OUT;
 
   mux_out final_mux (
             .SEL_OUT(SEL_OUT),
