@@ -27,7 +27,21 @@ module npu_axi_wrapper (
     output reg [31:0] s_axi_rdata,
     output reg [1:0] s_axi_rresp,
     output reg s_axi_rvalid,
-    input wire s_axi_rready    
+    input wire s_axi_rready,
+
+    // Debug / monitoring outputs
+    output wire [1:0] status_out,
+    output wire [7:0] result_out,
+    output wire [1:0] parking_class_out,
+    output wire        npu_fifo_full_out,
+    output wire        npu_fifo_empty_out,
+    output wire        npu_busy_out,
+    output wire        npu_done_out,
+    output wire [7:0]  npu_d_out_out,
+    output wire [15:0] npu_mac0_out_debug,
+    output wire [15:0] npu_mac1_out_debug,
+    output wire [15:0] npu_relu0_out_debug,
+    output wire [15:0] npu_relu1_out_debug
 );
 
     // =========================
@@ -79,6 +93,19 @@ module npu_axi_wrapper (
         .relu0_out_debug(npu_relu0_out),
         .relu1_out_debug(npu_relu1_out)
     );
+
+    assign status_out           = status_reg;
+    assign result_out           = result_reg;
+    assign parking_class_out    = parking_class_reg;
+    assign npu_fifo_full_out    = npu_fifo_full;
+    assign npu_fifo_empty_out   = npu_fifo_empty;
+    assign npu_busy_out         = npu_busy;
+    assign npu_done_out         = npu_done;
+    assign npu_d_out_out        = npu_d_out;
+    assign npu_mac0_out_debug   = npu_mac0_out;
+    assign npu_mac1_out_debug   = npu_mac1_out;
+    assign npu_relu0_out_debug  = npu_relu0_out;
+    assign npu_relu1_out_debug  = npu_relu1_out;
 
     // Detecta borda de subida do DONE
     reg npu_done_d;

@@ -31,6 +31,19 @@ module tb_axi_npu_wrapper;
     wire        s_axi_rvalid;
     reg         s_axi_rready;
 
+    wire [1:0] status_out;
+    wire [7:0] result_out;
+    wire [1:0] parking_class_out;
+    wire       npu_fifo_full_out;
+    wire       npu_fifo_empty_out;
+    wire       npu_busy_out;
+    wire       npu_done_out;
+    wire [7:0]  npu_d_out_out;
+    wire [15:0] npu_mac0_out_debug;
+    wire [15:0] npu_mac1_out_debug;
+    wire [15:0] npu_relu0_out_debug;
+    wire [15:0] npu_relu1_out_debug;
+
     // DUT
     npu_axi_wrapper u_dut (
         .clk(clk),
@@ -51,7 +64,19 @@ module tb_axi_npu_wrapper;
         .s_axi_rdata(s_axi_rdata),
         .s_axi_rresp(s_axi_rresp),
         .s_axi_rvalid(s_axi_rvalid),
-        .s_axi_rready(s_axi_rready)
+        .s_axi_rready(s_axi_rready),
+        .status_out(status_out),
+        .result_out(result_out),
+        .parking_class_out(parking_class_out),
+        .npu_fifo_full_out(npu_fifo_full_out),
+        .npu_fifo_empty_out(npu_fifo_empty_out),
+        .npu_busy_out(npu_busy_out),
+        .npu_done_out(npu_done_out),
+        .npu_d_out_out(npu_d_out_out),
+        .npu_mac0_out_debug(npu_mac0_out_debug),
+        .npu_mac1_out_debug(npu_mac1_out_debug),
+        .npu_relu0_out_debug(npu_relu0_out_debug),
+        .npu_relu1_out_debug(npu_relu1_out_debug)
     );
 
     // Clock 100 MHz
