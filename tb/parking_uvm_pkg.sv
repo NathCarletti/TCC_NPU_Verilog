@@ -44,7 +44,7 @@ typedef struct {
 `include "monitor/npu_monitor.sv"
 `include "agent/axi_agent.sv"
 `include "scoreboard/parking_scoreboard.sv"
-`include "coverage/parking_coverage.sv"
+// `include "coverage/parking_coverage.sv"
 `include "env/parking_env.sv"
 `include "sequences/write_sequence.sv"
 `include "sequences/read_sequence.sv"

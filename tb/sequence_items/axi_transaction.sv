@@ -6,9 +6,9 @@ class axi_transaction extends uvm_sequence_item;
 
   `uvm_object_utils(axi_transaction)
 
-  rand bit [31:0] addr;
-  rand bit [31:0] data;
-  rand bit [3:0]  wstrb;
+   bit [31:0] addr;
+   bit [31:0] data;
+   bit [3:0]  wstrb;
   bit             read;
   bit [31:0]      read_data;
   axi_op_e        op;

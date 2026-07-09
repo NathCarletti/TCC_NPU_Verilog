@@ -8,7 +8,7 @@ class parking_env extends uvm_env;
   axi_agent          m_axi_agent;
   npu_monitor        m_npu_monitor;
   parking_scoreboard m_scoreboard;
-  parking_coverage   m_coverage;
+  // parking_coverage   m_coverage; // removed for Questa Starter (SVVerification not available)
 
   function new(string name = "parking_env", uvm_component parent = null);
     super.new(name, parent);
@@ -20,15 +20,14 @@ class parking_env extends uvm_env;
   m_axi_agent   = axi_agent::type_id::create("axi_agent", this);
   m_npu_monitor = npu_monitor::type_id::create("npu_monitor", this);
   m_scoreboard  = parking_scoreboard::type_id::create("scoreboard", this);
-  m_coverage    = parking_coverage::type_id::create("coverage", this);
 endfunction
 
 function void connect_phase(uvm_phase phase);
   super.connect_phase(phase);
 
   m_axi_agent.sequencer.result_port.connect(m_scoreboard.analysis_export);
-  m_axi_agent.sequencer.result_port.connect(m_coverage.result_imp);
-  m_npu_monitor.status_port.connect(m_coverage.status_imp);
+  // m_axi_agent.sequencer.result_port.connect(m_coverage.result_imp); // removed
+  // m_npu_monitor.status_port.connect(m_coverage.status_imp); // removed
 endfunction
 
 endclass : parking_env
