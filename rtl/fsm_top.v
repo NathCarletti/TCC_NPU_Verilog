@@ -65,7 +65,7 @@ module npu_fsm_top (
   reg RST_MAC;
 
   // FIFO write sequencing (dois ciclos)
-  reg [1:0] fifo_write_step;
+  reg [2:0] fifo_write_step;
   wire [15:0] MAC0_Y, MAC1_Y; // 16-bit mac output (sem "signed")
 
   // ReLU interface
@@ -106,6 +106,7 @@ module npu_fsm_top (
   reg RST_COMP;
   wire [7:0] index;
   wire [15:0] largest;
+  wire [7:0] cont;
 
 
   // temporary registers
@@ -197,7 +198,8 @@ module npu_fsm_top (
                     .CLKEXT(CLKEXT),
                     .trig(En_ReLU),
                     .index(index),
-                    .largest(largest)
+                    .largest(largest),
+                    .cont(cont)
                   );
 
   piso_deb piso2 (
@@ -252,11 +254,11 @@ module npu_fsm_top (
   always @(posedge CLKEXT or posedge RST_GLO)
   begin
     if (RST_GLO)
-      fifo_write_step <= 2'd0;
+      fifo_write_step <= 3'd0;
     else if (state == OUTPUT_SHIFT)
       fifo_write_step <= fifo_write_step + 1'b1;
     else
-      fifo_write_step <= 2'd0;
+      fifo_write_step <= 3'd0;
   end
 
   // ------------------------------------------------------------------
@@ -309,13 +311,14 @@ module npu_fsm_top (
     fifo_wr_en = 1'b0;
     fifo_rd_en = npu_out_rd_en; // permitir leitura externa da FIFO de saída
     fifo_data_in = 8'h00;
-    SEL_OUT = 3'b000;
+    SEL_OUT = 3'b010;
     EN_COMP = 1'b0;
     RST_COMP = RST_GLO;
 
     case (state)
       IDLE:
       begin
+        RST_COMP = 1'b1;
         if (start_sync)
           next_state = LOAD_INPUT;
         else
@@ -368,7 +371,7 @@ module npu_fsm_top (
         fifo_rd_en = 1'b0;
         fifo_wr_en = 1'b1;
         fifo_data_in = PISO_DOUT;
-        if (fifo_write_step == 0)
+        if (fifo_write_step < 3)
         begin
           next_state = OUTPUT_SHIFT; // permanece para a segunda escrita
         end

@@ -203,6 +203,9 @@ module tb_axi_npu_wrapper;
         axi_read(32'h001C, data);  // Classe final
         $display("[TB] Classe final: %b (esperado 00 = verde/livre)\n", data[1:0]);
 
+        axi_write(32'h0010, 32'd0);
+        repeat(5) @(posedge clk);
+
         // ================================================================
         // CENÁRIO 1: VAGA OCUPADA
         // ================================================================
@@ -227,6 +230,9 @@ module tb_axi_npu_wrapper;
         axi_read(32'h001C, data);  // Classe final
         $display("[TB] Classe final: %b (esperado 01 = vermelho/ocupada)\n", data[1:0]);
 
+        axi_write(32'h0010, 32'd0);
+        repeat(5) @(posedge clk);
+
         // ================================================================
         // CENÁRIO 2: VAGA OBSTRUÍDA
         // ================================================================
@@ -250,6 +256,8 @@ module tb_axi_npu_wrapper;
         
         axi_read(32'h001C, data);  // Classe final
         $display("[TB] Classe final: %b (esperado 10 = amarelo/obstruida)\n", data[1:0]);
+        axi_write(32'h0010, 32'd0);
+        repeat(5) @(posedge clk);
 
         $display("[TB] ========================================");
         $display("[TB] Simulacao Completa!");

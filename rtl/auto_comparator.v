@@ -6,9 +6,9 @@ module auto_comparator (
     input  wire signed [15:0] in1,
     input  wire signed [15:0] in2,
     output reg          [7:0] index,
-    output reg  signed [15:0] largest
+    output reg  signed [15:0] largest,
+    output reg [7:0] cont
   );
-  reg [7:0] cont;
 
   always @(posedge CLKEXT)
   begin

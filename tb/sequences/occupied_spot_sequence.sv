@@ -58,8 +58,8 @@ class occupied_spot_sequence extends uvm_sequence#(axi_transaction);
 
     end_time = $time;
 
-    rd = read_sequence::type_id::create("rd_result", null);
-    rd.addr = 32'h0018;
+    rd = read_sequence::type_id::create("rd_parking_class", null);
+    rd.addr = 32'h001C;
     rd.start(m_sequencer);
 
     pr.scenario = "occupied_spot";
@@ -67,12 +67,11 @@ class occupied_spot_sequence extends uvm_sequence#(axi_transaction);
     pr.actual_class = parking_class_e'(rd.read_data[1:0]);
     pr.latency = end_time - start_time;
     pr.done_seen = 1;
-    axi_seq = axi_sequencer'(m_sequencer);
+    if (!$cast(axi_seq, m_sequencer))
+      `uvm_fatal("SEQ", "occupied_spot_sequence requires axi_sequencer")
     axi_seq.result_port.write(pr);
   endtask
 
 endclass : occupied_spot_sequence
 
 `endif
-
-

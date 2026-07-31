@@ -36,6 +36,38 @@ module top_tb;
   assign npu_vif.mac1_out_debug  = npu_mac1_out_debug;
   assign npu_vif.relu0_out_debug = npu_relu0_out_debug;
   assign npu_vif.relu1_out_debug = npu_relu1_out_debug;
+  assign npu_vif.piso_en_piso_out    = u_dut.u_npu.fsm_inst.piso.EN_PISO_OUT;
+  assign npu_vif.piso_shift_out      = u_dut.u_npu.fsm_inst.piso.SHIFT_OUT;
+  assign npu_vif.piso_clr_piso_out   = u_dut.u_npu.fsm_inst.piso.CLR_PISO_OUT;
+  assign npu_vif.shift_reg       = u_dut.u_npu.fsm_inst.piso.shift_reg;
+  assign npu_vif.piso_internal_d_out = u_dut.u_npu.fsm_inst.piso.D_OUT;
+  assign npu_vif.piso_dout       = u_dut.u_npu.fsm_inst.PISO_DOUT;
+  assign npu_vif.fifo_data_in    = u_dut.u_npu.fsm_inst.fifo_data_in;
+  assign npu_vif.fifo_wr_en      = u_dut.u_npu.fsm_inst.fifo_wr_en;
+  assign npu_vif.fifo_rd_en      = u_dut.u_npu.fsm_inst.fifo_rd_en;
+  assign npu_vif.fifo_data_out   = u_dut.u_npu.fsm_inst.fifo_data_out;
+  assign npu_vif.wr_ptr          = u_dut.u_npu.fsm_inst.out_fifo.wr_ptr;
+  assign npu_vif.rd_ptr          = u_dut.u_npu.fsm_inst.out_fifo.rd_ptr;
+  assign npu_vif.count           = u_dut.u_npu.fsm_inst.out_fifo.count;
+  
+  assign npu_vif.mem0_debug =
+    u_dut.u_npu.fsm_inst.out_fifo.mem0_debug;
+  assign npu_vif.mem1_debug =
+    u_dut.u_npu.fsm_inst.out_fifo.mem1_debug;
+
+assign npu_vif.out_rd_en_reg   = u_dut.out_rd_en_reg;
+assign npu_vif.out_rd_en_reg_d = u_dut.out_rd_en_reg_d;
+assign npu_vif.result_reg      = u_dut.result_reg;
+assign npu_vif.SEL_OUT        = u_dut.u_npu.fsm_inst.SEL_OUT;
+assign npu_vif.index        = u_dut.u_npu.fsm_inst.index;
+assign npu_vif.largest        = u_dut.u_npu.fsm_inst.largest;
+assign npu_vif.EN_COMP        = u_dut.u_npu.fsm_inst.comp.EN_COMP;
+assign npu_vif.RST_COMP        = u_dut.u_npu.fsm_inst.comp.RST_COMP;
+assign npu_vif.trig        = u_dut.u_npu.fsm_inst.comp.trig;
+assign npu_vif.in1        = u_dut.u_npu.fsm_inst.comp.in1;
+assign npu_vif.in2        = u_dut.u_npu.fsm_inst.comp.in2;
+assign npu_vif.cont = u_dut.u_npu.fsm_inst.comp.cont;
+
 
   npu_axi_wrapper u_dut (
     .clk(clk),

@@ -30,14 +30,6 @@ class axi_transaction extends uvm_sequence_item;
     printer.print_field_int("op", op, $bits(op), UVM_BIN);
   endfunction
 
-//   `uvm_object_utils_begin(axi_transaction)
-//   `uvm_field_int(addr,     UVM_ALL_ON)
-//   `uvm_field_int(data,     UVM_ALL_ON)
-//   `uvm_field_int(wstrb,    UVM_ALL_ON)
-//   `uvm_field_int(read,     UVM_ALL_ON)
-//   `uvm_field_int(read_data,UVM_ALL_ON)
-//   `uvm_field_enum(axi_op_e, op, UVM_ALL_ON)
-// `uvm_object_utils_end
 endclass : axi_transaction
 
 `endif

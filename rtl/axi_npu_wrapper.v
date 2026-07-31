@@ -41,7 +41,14 @@ module npu_axi_wrapper (
     output wire [15:0] npu_mac0_out_debug,
     output wire [15:0] npu_mac1_out_debug,
     output wire [15:0] npu_relu0_out_debug,
-    output wire [15:0] npu_relu1_out_debug
+    output wire [15:0] npu_relu1_out_debug,
+
+    
+
+    output wire debug_done_edge,
+    output wire debug_out_rd_en,
+    output wire debug_out_rd_en_d,
+    output wire [7:0] debug_result_reg
 );
 
     // =========================
@@ -59,6 +66,7 @@ module npu_axi_wrapper (
     reg [1:0] status_reg; // [0]=busy, [1]=done
     reg       out_rd_en_reg;
     reg       out_rd_en_reg_d; // delay para sincronizar leitura do resultado com o pulso de leitura da FIFO
+    reg [2:0] fifo_drain_count;
 
     reg [15:0] mac0_out_reg, mac1_out_reg;
     reg [15:0] relu0_out_reg, relu1_out_reg;
@@ -107,6 +115,10 @@ module npu_axi_wrapper (
     assign npu_relu0_out_debug  = npu_relu0_out;
     assign npu_relu1_out_debug  = npu_relu1_out;
 
+assign debug_out_rd_en    = out_rd_en_reg;
+assign debug_out_rd_en_d  = out_rd_en_reg_d;
+assign debug_result_reg   = result_reg;
+
     // Detecta borda de subida do DONE
     reg npu_done_d;
     wire done_edge;
@@ -119,6 +131,7 @@ module npu_axi_wrapper (
     end
 
     assign done_edge = npu_done && !npu_done_d;
+    assign debug_done_edge = done_edge;
 
     // =====================================================
     // BLOCO PRINCIPAL
@@ -131,6 +144,7 @@ module npu_axi_wrapper (
         start_reg_d <= 0;
         out_rd_en_reg <= 1'b0;
         out_rd_en_reg_d <= 1'b0;
+        fifo_drain_count <= 3'd0;
     end else begin
         // Delay START para gerar pulso de 1 ciclo
         start_reg_d <= start_reg;
@@ -150,17 +164,27 @@ module npu_axi_wrapper (
         // CONTROLE DA FIFO DO NPU
         // =========================
         // Gera um pulso único de leitura apenas quando a NPU terminar e a FIFO tiver dados.
-        if (done_edge && !npu_fifo_empty)
+        if (done_edge && !npu_fifo_empty) begin
             out_rd_en_reg <= 1'b1;
-        else
+            fifo_drain_count <= 3'd1;
+        end else if (out_rd_en_reg) begin
+            if ((fifo_drain_count < 3'd4) && !npu_fifo_empty) begin
+                out_rd_en_reg <= 1'b1;
+                fifo_drain_count <= fifo_drain_count + 1'b1;
+            end else begin
+                out_rd_en_reg <= 1'b0;
+                fifo_drain_count <= 3'd0;
+            end
+        end else begin
             out_rd_en_reg <= 1'b0;
+        end
 
         out_rd_en_reg_d <= out_rd_en_reg; // v2.delay para sincronizar com leitura do dado
 
         // =========================
         // CAPTURA DO RESULTADO
         // =========================
-        if (out_rd_en_reg_d) begin
+        if (done_edge) begin
             result_reg <= npu_d_out;
             
             // Capture MAC and ReLU debug values
@@ -170,13 +194,21 @@ module npu_axi_wrapper (
             relu1_out_reg <= npu_relu1_out;
 
             // Latch da classe final
+            // if (db_reg > 8'd40)
+            //     parking_class_reg <= 2'b10;  // obstruída
+            // else if (da_reg >= 8'd100)
+            //     parking_class_reg <= 2'b00;  // livre
+            // else
+            //     parking_class_reg <= 2'b01;  // 
             if (db_reg > 8'd40)
-                parking_class_reg <= 2'b10;  // obstruída
-            else if (npu_d_out == 8'd1)
-                parking_class_reg <= 2'b00;  // livre
+                parking_class_reg <= 2'b10;      // obstruída
+
+            else if (relu0_out_reg >= relu1_out_reg)
+                parking_class_reg <= 2'b00;      // livre
+
             else
-                parking_class_reg <= 2'b01;  // ocupada
-        end
+                parking_class_reg <= 2'b01;      // ocupada
+                    end
     end
 end
 

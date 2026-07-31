@@ -34,6 +34,20 @@ typedef struct {
   bit [15:0]      mac1_out_debug;
   bit [15:0]      relu0_out_debug;
   bit [15:0]      relu1_out_debug;
+  bit             piso_en_piso_out;
+  bit             piso_shift_out;
+  bit             piso_clr_piso_out;
+  bit [31:0]      shift_reg;
+  bit [7:0]       piso_internal_d_out;
+  bit [7:0]       piso_dout;
+  bit [7:0]       fifo_data_in;
+  bit             fifo_wr_en;
+  bit             fifo_rd_en;
+  bit [7:0]       fifo_data_out;
+  bit [7:0]       wr_ptr;
+  bit [7:0]       rd_ptr;
+  bit [7:0]       count;
+  bit [31:0]      shift_reg_debug;
 } npu_status_item;
 
 

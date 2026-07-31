@@ -1,6 +1,4 @@
-//Registrador de saída serial (PISO) para enviar os resultados processados pela NPU para fora, 
-//controlado por sinais de habilitação, limpeza e shift
-//
+// Parallel-in serial-out register for the two 16-bit ReLU results.
 module piso_out (
     input  wire        CLKEXT,
     input  wire        RST_GLO,
@@ -9,34 +7,27 @@ module piso_out (
     input  wire        SHIFT_OUT,
     input  wire [15:0] mac0_out,
     input  wire [15:0] mac1_out,
-    output reg  [7:0]  D_OUT
+    output wire [7:0]  D_OUT
   );
 
   reg [31:0] shift_reg;
 
+  // Expose the current MSB before the active clock edge shifts it.
+  // This lets the FIFO store the correct byte on every SHIFT_OUT cycle.
+  assign D_OUT = shift_reg[31:24];
+
   always @(posedge CLKEXT or posedge RST_GLO)
   begin
     if (RST_GLO)
-    begin
       shift_reg <= 32'd0;
-      D_OUT     <= 8'd0;
-    end
     else if (CLR_PISO_OUT)
-    begin
       shift_reg <= 32'd0;
-      D_OUT     <= 8'd0;
-    end
     else if (EN_PISO_OUT)
     begin
       if (!SHIFT_OUT)
-      begin
         shift_reg <= {mac0_out, mac1_out};
-      end
       else
-      begin
-        D_OUT     <= shift_reg[31:24]; //deslocados serialmente para fora, começando pelos bits mais significativos
-        shift_reg <= {shift_reg[23:0], 8'b0}; //evita glitches ao deslocar, preenchendo os bits inferiores com zero
-      end
+        shift_reg <= {shift_reg[23:0], 8'b0};
     end
   end
 
