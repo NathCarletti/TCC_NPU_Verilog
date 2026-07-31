@@ -1,26 +1,38 @@
 # =========================
 # Verilog / Simulation
 # =========================
-*.vcd
+work/
+transcript
+vsim.wlf
 *.wlf
+*.vcd
+*.fst
+*.wcfg
 *.log
 *.jou
 *.pb
 *.str
 *.wdb
-transcript
-vsim.wlf
-work/
 modelsim.ini
 
 # =========================
 # ModelSim / Questa
 # =========================
+*.mpf
 *.mti
+*.cr
 *.dat
 *.dbg
 *.bak
 *.tmp
+*.vstf
+*.stackdump
+*_stacktrace.txt
+
+# Bibliotecas compiladas
+_lib*
+_info
+_vmake
 
 # =========================
 # Quartus
@@ -52,8 +64,6 @@ simulation/
 *.bit
 *.bin
 *.ltx
-*.log
-*.jou
 
 # =========================
 # VS Code
@@ -61,7 +71,8 @@ simulation/
 .vscode/
 
 # =========================
-# OS files
+# Sistema Operacional
 # =========================
 .DS_Store
 Thumbs.db
+Desktop.ini
