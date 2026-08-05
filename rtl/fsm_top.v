@@ -132,8 +132,8 @@ module npu_fsm_top (
                .RST_MAC(RST_MAC),
                .RST_GLO(RST_GLO),
                .BIAS_IN(DA),
-               .A(QA),
-               .B(QB),
+               .A(QA), //distancia
+               .B(QC), //tempo
                .Y(MAC0_Y)
              );
 
@@ -144,8 +144,8 @@ module npu_fsm_top (
                .RST_MAC(RST_MAC),
                .RST_GLO(RST_GLO),
                .BIAS_IN(DC),
-               .A(QC),
-               .B(QD),
+               .A(QA), //distancia
+               .B(QD), //delta
                .Y(MAC1_Y)
              );
 

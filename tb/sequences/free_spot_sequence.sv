@@ -19,24 +19,26 @@ class free_spot_sequence extends uvm_sequence#(axi_transaction);
     time start_time;
     time end_time;
 
+    // ReLU0 = 100 + 3*(100*10) = 3100; ReLU1 = 20 + 3*(20*5) = 320.
+    // ReLU0 >= ReLU1 and DB <= 40, therefore this is a free spot.
     wr = write_sequence::type_id::create("wr_da", null);
     wr.addr = 32'h0000;
-    wr.data = 32'd200;
+    wr.data = 32'd100;
     wr.start(m_sequencer);
 
     wr = write_sequence::type_id::create("wr_db", null);
     wr.addr = 32'h0004;
-    wr.data = 32'd2;
+    wr.data = 32'd10;
     wr.start(m_sequencer);
 
     wr = write_sequence::type_id::create("wr_dc", null);
     wr.addr = 32'h0008;
-    wr.data = 32'd30;
+    wr.data = 32'd20;
     wr.start(m_sequencer);
 
     wr = write_sequence::type_id::create("wr_dd", null);
     wr.addr = 32'h000C;
-    wr.data = 32'd120;
+    wr.data = 32'd5;
     wr.start(m_sequencer);
 
     wr = write_sequence::type_id::create("wr_start", null);

@@ -19,6 +19,7 @@ class obstructed_spot_sequence extends uvm_sequence#(axi_transaction);
     time start_time;
     time end_time;
 
+    // ReLU0 = 16610 and ReLU1 = 915. DB=50 activates obstruction priority.
     wr = write_sequence::type_id::create("wr_da", null);
     wr.addr = 32'h0000;
     wr.data = 32'd110;

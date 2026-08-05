@@ -19,6 +19,8 @@ class occupied_spot_sequence extends uvm_sequence#(axi_transaction);
     time start_time;
     time end_time;
 
+    // ReLU0 = 30 + 3*(30*1) = 120; ReLU1 = 20 + 3*(20*80) = 4820.
+    // ReLU1 > ReLU0 and DB <= 40, therefore this is an occupied spot.
     wr = write_sequence::type_id::create("wr_da", null);
     wr.addr = 32'h0000;
     wr.data = 32'd30;
@@ -73,5 +75,79 @@ class occupied_spot_sequence extends uvm_sequence#(axi_transaction);
   endtask
 
 endclass : occupied_spot_sequence
+
+class occupied_variant_sequence extends uvm_sequence#(axi_transaction);
+
+  `uvm_object_utils(occupied_variant_sequence)
+
+  function new(string name = "occupied_variant_sequence");
+    super.new(name);
+  endfunction
+
+  task body();
+    bit [31:0] status_word;
+    parking_result pr;
+    write_sequence wr;
+    read_sequence rd;
+    axi_sequencer axi_seq;
+    time start_time;
+    time end_time;
+
+    // ReLU0 = 70 + 3*(70*3) = 700; ReLU1 = 25 + 3*(25*70) = 5275.
+    // A second occupied case: ReLU1 > ReLU0 and DB <= 40.
+    wr = write_sequence::type_id::create("wr_variant_da", null);
+    wr.addr = 32'h0000;
+    wr.data = 32'd70;
+    wr.start(m_sequencer);
+
+    wr = write_sequence::type_id::create("wr_variant_db", null);
+    wr.addr = 32'h0004;
+    wr.data = 32'd3;
+    wr.start(m_sequencer);
+
+    wr = write_sequence::type_id::create("wr_variant_dc", null);
+    wr.addr = 32'h0008;
+    wr.data = 32'd25;
+    wr.start(m_sequencer);
+
+    wr = write_sequence::type_id::create("wr_variant_dd", null);
+    wr.addr = 32'h000C;
+    wr.data = 32'd70;
+    wr.start(m_sequencer);
+
+    wr = write_sequence::type_id::create("wr_variant_start", null);
+    wr.addr = 32'h0010;
+    wr.data = 32'd1;
+    wr.start(m_sequencer);
+    start_time = $time;
+
+    forever begin
+      rd = read_sequence::type_id::create("rd_variant_status", null);
+      rd.addr = 32'h0014;
+      rd.start(m_sequencer);
+      status_word = rd.read_data;
+      if (status_word[1]) begin
+        break;
+      end
+      #10;
+    end
+
+    end_time = $time;
+
+    rd = read_sequence::type_id::create("rd_variant_parking_class", null);
+    rd.addr = 32'h001C;
+    rd.start(m_sequencer);
+
+    pr.scenario = "occupied_variant";
+    pr.expected_class = OCCUPIED;
+    pr.actual_class = parking_class_e'(rd.read_data[1:0]);
+    pr.latency = end_time - start_time;
+    pr.done_seen = 1;
+    if (!$cast(axi_seq, m_sequencer))
+      `uvm_fatal("SEQ", "occupied_variant_sequence requires axi_sequencer")
+    axi_seq.result_port.write(pr);
+  endtask
+
+endclass : occupied_variant_sequence
 
 `endif

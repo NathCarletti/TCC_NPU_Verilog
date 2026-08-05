@@ -203,7 +203,7 @@ assign debug_result_reg   = result_reg;
             if (db_reg > 8'd40)
                 parking_class_reg <= 2'b10;      // obstruída
 
-            else if (relu0_out_reg >= relu1_out_reg)
+            else if (npu_relu0_out >= npu_relu1_out)
                 parking_class_reg <= 2'b00;      // livre
 
             else

@@ -19,7 +19,11 @@ rtl/*.v \
 tb/top_tb.sv
 
 # Simulação
+if {![info exists TESTNAME]} {
+    set TESTNAME free_spot_test
+}
+
 vsim \
 -sv_lib $UVM_DPI \
 work.top_tb \
-+UVM_TESTNAME=free_spot_test
++UVM_TESTNAME=$TESTNAME
